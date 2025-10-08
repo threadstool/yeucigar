@@ -21,7 +21,14 @@ app.get("/api", async (req, res) => {
   try {
     // Gọi API thật để lấy dữ liệu video từ Threads
     const apiUrl = `https://savein.io/api?url=${encodeURIComponent(target)}`;
-    const response = await fetch(apiUrl, { timeout: 20000 });
+    const response = await fetch(apiUrl, {
+  headers: {
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Accept": "application/json, text/plain, */*"
+  }
+});
+
     const data = await response.json();
 
     // Trả lại dữ liệu cho frontend
