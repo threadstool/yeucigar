@@ -1,36 +1,41 @@
 import express from "express";
-import axios from "axios";
 import cors from "cors";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import fetch from "node-fetch";
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+const PORT = process.env.PORT || 10000;
 
-// Serve frontend
-app.use(express.static(path.join(__dirname, "public")));
+// Kiểm tra trạng thái server
+app.get("/", (req, res) => {
+  res.send("✅ Threads Downloader proxy is running!");
+});
 
+// API proxy chính
 app.get("/api", async (req, res) => {
+  const target = req.query.url;
+  if (!target) {
+    return res.status(400).json({ error: "Missing URL parameter" });
+  }
+
   try {
-    const { url } = req.query;
-    if (!url) return res.status(400).json({ ok: false, error: "Thiếu URL Threads" });
+    // Gọi API thật để lấy dữ liệu video từ Threads
+    const apiUrl = `https://savein.io/api?url=${encodeURIComponent(target)}`;
+    const response = await fetch(apiUrl, { timeout: 20000 });
+    const data = await response.json();
 
-    const api = `https://savein.io/api?url=${encodeURIComponent(url)}`;
-    const response = await axios.get(api, {
-      headers: { "User-Agent": "Mozilla/5.0" },
-      timeout: 15000,
+    // Trả lại dữ liệu cho frontend
+    res.json(data);
+  } catch (error) {
+    console.error("❌ Lỗi proxy:", error.message);
+    res.status(500).json({
+      error: "Failed to fetch data from savein.io",
+      detail: error.message,
     });
-
-    return res.json(response.data);
-  } catch (e) {
-    console.error("Error:", e.message);
-    return res.status(500).json({ ok: false, error: "Lỗi proxy hoặc API không phản hồi" });
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Threads Downloader chạy tại http://localhost:${PORT}`));
+// Lắng nghe cổng mặc định (Render sẽ tự đặt PORT)
+app.listen(PORT, () => {
+  console.log(`🚀 Server running at port ${PORT}`);
+});
