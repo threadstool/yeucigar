@@ -6,12 +6,10 @@ const app = express();
 app.use(cors());
 const PORT = process.env.PORT || 10000;
 
-// Kiểm tra trạng thái server
 app.get("/", (req, res) => {
   res.send("✅ Threads Downloader proxy is running!");
 });
 
-// API proxy chính
 app.get("/api", async (req, res) => {
   const target = req.query.url;
   if (!target) {
@@ -19,30 +17,34 @@ app.get("/api", async (req, res) => {
   }
 
   try {
-    // Gọi API thật để lấy dữ liệu video từ Threads
-    const apiUrl = `https://savein.io/api?url=${encodeURIComponent(target)}`;
+    // 🔁 Thay đổi endpoint chính ở đây
+    const apiUrl = `https://threads.savefrom.net/api/get?url=${encodeURIComponent(target)}`;
     const response = await fetch(apiUrl, {
-  headers: {
-    "User-Agent":
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-    "Accept": "application/json, text/plain, */*"
-  }
-});
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "application/json, text/plain, */*"
+      }
+    });
 
-    const data = await response.json();
+    const text = await response.text();
 
-    // Trả lại dữ liệu cho frontend
-    res.json(data);
+    try {
+      const data = JSON.parse(text);
+      res.json(data);
+    } catch {
+      res.status(500).json({
+        error: "API returned non-JSON response",
+        detail: text.slice(0, 200)
+      });
+    }
   } catch (error) {
-    console.error("❌ Lỗi proxy:", error.message);
+    console.error("❌ Proxy error:", error.message);
     res.status(500).json({
-      error: "Failed to fetch data from savein.io",
-      detail: error.message,
+      error: "Failed to fetch data from savefrom.net",
+      detail: error.message
     });
   }
 });
 
-// Lắng nghe cổng mặc định (Render sẽ tự đặt PORT)
-app.listen(PORT, () => {
-  console.log(`🚀 Server running at port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`🚀 Server running at port ${PORT}`));
