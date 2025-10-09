@@ -4,14 +4,14 @@ import fetch from "node-fetch";
 
 const app = express();
 app.use(cors());
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
-// Route kiểm tra trạng thái server
+// Kiểm tra trạng thái server
 app.get("/", (req, res) => {
   res.send("✅ Threads Downloader proxy is running on Replit!");
 });
 
-// Route API chính
+// API chính để tải video Threads
 app.get("/api", async (req, res) => {
   const target = req.query.url;
   if (!target) {
@@ -19,7 +19,9 @@ app.get("/api", async (req, res) => {
   }
 
   try {
-    const apiUrl = `https://savein.io/api?url=${encodeURIComponent(target)}`;
+    // endpoint lấy dữ liệu video — bạn có thể đổi qua savein.io, snapsave.io, v.v.
+    const apiUrl = `https://snapsave.io/api/get?url=${encodeURIComponent(target)}`;
+
     const response = await fetch(apiUrl, {
       headers: {
         "User-Agent":
