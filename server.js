@@ -4,12 +4,14 @@ import fetch from "node-fetch";
 
 const app = express();
 app.use(cors());
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 3000;
 
+// Route kiểm tra trạng thái server
 app.get("/", (req, res) => {
-  res.send("✅ Threads Downloader proxy is running!");
+  res.send("✅ Threads Downloader proxy is running on Replit!");
 });
 
+// Route API chính
 app.get("/api", async (req, res) => {
   const target = req.query.url;
   if (!target) {
@@ -17,8 +19,7 @@ app.get("/api", async (req, res) => {
   }
 
   try {
-    // 🔁 Thay đổi endpoint chính ở đây
-    const apiUrl = `https://threads.savefrom.net/api/get?url=${encodeURIComponent(target)}`;
+    const apiUrl = `https://savein.io/api?url=${encodeURIComponent(target)}`;
     const response = await fetch(apiUrl, {
       headers: {
         "User-Agent":
@@ -28,7 +29,6 @@ app.get("/api", async (req, res) => {
     });
 
     const text = await response.text();
-
     try {
       const data = JSON.parse(text);
       res.json(data);
@@ -41,10 +41,10 @@ app.get("/api", async (req, res) => {
   } catch (error) {
     console.error("❌ Proxy error:", error.message);
     res.status(500).json({
-      error: "Failed to fetch data from savefrom.net",
+      error: "Failed to fetch data from Threads",
       detail: error.message
     });
   }
 });
 
-app.listen(PORT, () => console.log(`🚀 Server running at port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
